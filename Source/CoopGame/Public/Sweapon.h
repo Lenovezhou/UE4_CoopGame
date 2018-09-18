@@ -8,6 +8,22 @@
 
 
 class USkeletalMeshComponent;
+class UDamageType;
+class UParticleSystem;
+class UCameraShake;
+
+USTRUCT()
+struct FHitScanTrace
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+		TEnumAsByte<EPhysicalSurface> surfacetype;
+
+	UPROPERTY()
+		FVector_NetQuantize TraceTo;
+};
+
 
 UCLASS()
 class COOPGAME_API ASweapon : public AActor
@@ -21,13 +37,61 @@ public:
 	UPROPERTY(VisibleAnywhere,BlueprintReadOnly,Category = "Components")
 	USkeletalMeshComponent* meshcomponent;
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	float basedamage;
 
-	
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Weapon")
+	TSubclassOf<UDamageType> damagetypeclass;
+
+	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly,Category = "Weapon")
+	UParticleSystem* MuzzelEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* DefaultEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* FleshVulnerableEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	UParticleSystem* TracerEffect;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	FName MuzzelSocketName;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	FName TracerEffectTargetName;
+
+	UPROPERTY(EditDefaultsOnly,Category = "Weapon")
+	TSubclassOf<UCameraShake> camerashakeanim;
+
+	void PlayFireEffect(FVector TrancerEndPos);
+
+	void PlayImpactEffect(EPhysicalSurface surfacetype, FVector ImpactPoint);
+
+	virtual void Fire();
+
+
+	FTimerHandle fireratehandle;
+
+	float firerate;
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	float firepreminitNUM;
+
+	float lastfiretime;
+
+	UFUNCTION(Server,Reliable,WithValidation)
+	void ServerFire();
+
+
+	UPROPERTY(ReplicatedUsing = OnRep_HitScanTrace)
+	FHitScanTrace HitScanTrace;
+
+	UFUNCTION()
+		void OnRep_HitScanTrace();
+
+public:	
+	void StartFire();
+	void EndFire();
 	
 };

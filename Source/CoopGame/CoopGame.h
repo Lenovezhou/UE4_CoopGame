@@ -4,3 +4,7 @@
 
 #include "CoreMinimal.h"
 
+#define DefaultFleshSurface SurfaceType1
+#define FleshVulnerableSuface SurfaceType2
+
+#define  Weaponchanel ECC_GameTraceChannel1
